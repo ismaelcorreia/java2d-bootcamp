@@ -55,6 +55,7 @@ public class Canva extends AbstractAction {
     public void keyEvents(KeyEvent event) {
         bola.keyEvents(event);
         demo.keyEvents(event);
+        actionCharacter.keyEvents(event);
     }
 
     private DemoCharacter demo;

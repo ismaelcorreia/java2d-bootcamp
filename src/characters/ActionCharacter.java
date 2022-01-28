@@ -15,6 +15,10 @@ public class ActionCharacter extends AbstractAction {
     // Primeiro passo: extender a class AbstractAction e implementar todos os seus métodos abstractos
     // Criar classes do corpo (dividir em 3 partes)
 
+    private int moveX = 0;
+    private int step = 10;
+    private static boolean moveToRigth = false;
+    private static boolean moveToLeft = false;
 
     private final Head head = new Head();
     private final Body body = new Body();
@@ -23,10 +27,20 @@ public class ActionCharacter extends AbstractAction {
     public void draw(Graphics2D g){
         AffineTransform transform = g.getTransform();
 
+        if (moveToRigth)
+            moveX += 10;
+        if (moveToLeft)
+            moveX -= 10;
+
+        g.translate(moveX, 0);
+
         foot.draw(g);
         body.draw(g);
         head.draw(g);
 
+
+        moveToRigth = false;
+        moveToLeft = false;
         g.setTransform(transform);
     }
 
@@ -36,7 +50,8 @@ public class ActionCharacter extends AbstractAction {
 
 
         private final Point startPoint = new Point(600, 100);
-
+        public static boolean eyeClosed = true;
+        public static boolean mothClosed = true;
         public void draw(Graphics2D g){
             AffineTransform transform = g.getTransform();
 
@@ -47,12 +62,12 @@ public class ActionCharacter extends AbstractAction {
             GeoDraw.drawRoundedRectangle(g,
                     new Color(242,171,131),
                     new Point(startPoint.x+ 130/2 -30, startPoint.y + 130/2 -35), new Dimension(60, 3), 5, 5);
-            drawEye(g, true);
+            drawEye(g, eyeClosed);
             g.translate(57, 0);
             drawEye(g, false);
             g.setTransform(transform);
             drawNoises(g);
-            drawMouth(g, true);
+            drawMouth(g, mothClosed);
             drawEar(g);
         }
 
@@ -165,10 +180,18 @@ public class ActionCharacter extends AbstractAction {
 
 
         private final Point startPoint = new Point(560, 200);
+        private int move = 0;
+        private int step = 5;
+        private boolean toDown = false;
+        public static boolean moveHand = false;
 
         public void draw(Graphics2D g){
             AffineTransform transform = g.getTransform();
+
+            g.rotate(Math.toRadians(move), startPoint.x-130+210, startPoint.y+40 + ((startPoint.y+40+100)/2)-100-25);
             drawHand(g);
+            g.setTransform(transform);
+
             GeoDraw.drawEllipse(g, new Color(189, 4, 4),
                     new Point(startPoint.x, startPoint.y),
                     new Dimension(220, 220));
@@ -178,6 +201,29 @@ public class ActionCharacter extends AbstractAction {
                     new Dimension(80, 20), 20 , 20);
             drawHand2(g);
             g.setTransform(transform);
+
+            Head.eyeClosed = moveHand;
+            Head.mothClosed = moveHand;
+            if (moveHand) {
+
+                if (!toDown) {
+                    if (move<= 70)
+                        move += step;
+                    else
+                        toDown = !toDown;
+                }else {
+
+                    if (move>= -50)
+                        move -= step;
+                    else {
+                        toDown = !toDown;
+                        moveHand = false;
+
+                    }
+                }
+            }
+
+
         }
 
         private void drawHand(Graphics2D g) {
@@ -227,10 +273,13 @@ public class ActionCharacter extends AbstractAction {
             );
 
 //
+
+
             GeoDraw.drawRoundedRectangle(g, new Color(240,146,126),
                     new Point(startPoint.x-130, startPoint.y+40),
                     new Dimension(210, 100), 100
                     , 100);
+
 
             GeoDraw.drawRoundedRectangle(g, new Color(240,146,126),
                     new Point(startPoint.x-130+50, startPoint.y+40-20),
@@ -248,7 +297,6 @@ public class ActionCharacter extends AbstractAction {
                     new Point(startPoint.x-130, startPoint.y+40),
                     new Dimension(100, 100), 100
                     , 100);
-
         }
 
         private void drawHand2(Graphics2D g) {
@@ -286,13 +334,13 @@ public class ActionCharacter extends AbstractAction {
             GeoDraw.drawRectangle(g, new Color(21, 92, 97),
                     new Point(startPoint.x, startPoint.y),
                     new Dimension(200, 50));
-            drawLeg(g);
+            drawLeg(g, new Point(0,0) );
             g.translate(100,0);
-            drawLeg(g);
+            drawLeg(g, new Point(0,0));
             g.setTransform(transform);
         }
 
-        public void drawLeg(Graphics2D g){
+        public void drawLeg(Graphics2D g, Point moveTo){
             AffineTransform transform = g.getTransform();
 
             GeoDraw.drawRectangle(g, new Color(21, 92, 97),
@@ -302,6 +350,8 @@ public class ActionCharacter extends AbstractAction {
             GeoDraw.drawEllipse(g, new Color(21, 92, 97),
                     new Point(startPoint.x-10, startPoint.y+25+100),
                     new Dimension(40, 40));
+
+
             GeoDraw.drawRectangle(g, new Color(21, 92, 97),
                     new Point(startPoint.x, startPoint.y+50+100),
                     new Dimension(40, 100));
@@ -346,6 +396,11 @@ public class ActionCharacter extends AbstractAction {
 
     @Override
     public void keyEvents(KeyEvent event) {
+        if (event.getKeyCode() == KeyEvent.VK_RIGHT)
+            moveToRigth = true;
+        if (event.getKeyCode() == KeyEvent.VK_LEFT)
+            moveToLeft = true;
+        Body.moveHand = (moveToLeft||moveToRigth);
 
     }
 }
