@@ -36,6 +36,27 @@ public abstract class AbstractAction extends Component{
         HOVER
     }
 
-    public abstract void keyEvents(KeyEvent event);
+    //EVENTOS DO TECLADO PARA TODAS AS CLASSES.
+    public synchronized void keyEvents(KeyEvent event, KeyEventType keyEventType) {
+        switch (keyEventType){
+            case PRESSED:
+                keyPressed(event);
+                break;
+            case RELEASED:
+                keyRealesed(event);
+                break;
+        }
+    }
+
+    public enum KeyEventType{
+        PRESSED,
+        RELEASED
+    }
+
+    // QUANDO PRESSIONARMOS O TECLADO
+    protected abstract void keyPressed(KeyEvent event);
+
+    // QUANDO LARGAMOS O TECLADO CLICADO
+    protected abstract void keyRealesed(KeyEvent event);
 
 }

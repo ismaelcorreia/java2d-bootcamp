@@ -40,7 +40,7 @@ public class Bola extends AbstractAction {
     }
 
     @Override
-    public void keyEvents(KeyEvent event) {
+    protected void keyPressed(KeyEvent event) {
         if (event.getKeyCode() == KeyEvent.VK_RIGHT){
             x+=speed;
         }
@@ -54,4 +54,10 @@ public class Bola extends AbstractAction {
             y+=speed;
         }
     }
+
+    @Override
+    protected void keyRealesed(KeyEvent event) {
+
+    }
+
 }

@@ -1,13 +1,15 @@
 package characters;
 
 import actions.AbstractAction;
+import controllers.GameEngine;
 
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Area;
-import java.awt.geom.NoninvertibleTransformException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ActionCharacter extends AbstractAction {
 
@@ -15,43 +17,106 @@ public class ActionCharacter extends AbstractAction {
     // Primeiro passo: extender a class AbstractAction e implementar todos os seus métodos abstractos
     // Criar classes do corpo (dividir em 3 partes)
 
+    private GameEngine engine;
+
+    private List<Integer> keyCodes;
     private int moveX = 0;
     private int step = 10;
-    private static boolean moveToRigth = false;
-    private static boolean moveToLeft = false;
+    private boolean moveToRigth = false;
+    private boolean moveToLeft = false;
+    private Rectangle rectangle;
+    private Point point;
+    private Dimension dimension;
+    private final Head head;
+    private final Body body;
+    private final Foot foot;
+    private boolean reverse;
+    private final boolean PLAYER2;
 
-    private final Head head = new Head();
-    private final Body body = new Body();
-    private final Foot foot = new Foot();
+    public ActionCharacter(boolean player2) {
+       this(player2, new Point(0,0));
+    }
+    public ActionCharacter(boolean player2, Point p) {
+        PLAYER2 = player2;
+        head = new Head(PLAYER2);
+        body = new Body(PLAYER2);
+        foot = new Foot(PLAYER2);
+        keyCodes = new ArrayList<>();
+        point = new Point(440+p.x, 95+p.y);
+        moveX = p.x;
+        dimension = new Dimension(420, 550);
+        rectangle = new Rectangle(point, dimension);
+        engine = new GameEngine(rectangle);
+    }
+
+    public void setExternalRectangles(Rectangle... rectangles) {
+        this.engine.setExternalRectangles(rectangles);
+    }
 
     public void draw(Graphics2D g){
         AffineTransform transform = g.getTransform();
 
-        if (moveToRigth)
-            moveX += 10;
-        if (moveToLeft)
-            moveX -= 10;
+        if (moveToRigth) {
+
+            rectangle.x += 10;
+            if(this.engine.checkColision())
+                rectangle.x -= 10;
+            else
+                moveX += 10;
+        }
+
+        if (moveToLeft) {
+
+            rectangle.x -= 10;
+            if(this.engine.checkColision())
+                rectangle.x += 10;
+            else
+                moveX -= 10;
+        }
+
 
         g.translate(moveX, 0);
+
+        if (reverse) {
+            g.translate(600*2,0);
+            g.scale(-1,1);
+        }
 
         foot.draw(g);
         body.draw(g);
         head.draw(g);
 
 
+        head.eyeClosed = body.moveHand;
+        head.mothClosed = body.moveHand;
         moveToRigth = false;
         moveToLeft = false;
         g.setTransform(transform);
+
+        g.setPaint(new Color(0,0,0,0));
+        g.drawRect(rectangle.x,rectangle.y, rectangle.width, rectangle.height);
+    }
+
+    public Rectangle getRectangle() {
+        return rectangle;
     }
 
 
     static class Head{
 
+        //Constructor
+        Head(boolean player2) {
+            this.PLAYER2 = player2;
+        }
+
+
+        private final boolean PLAYER2;
 
 
         private final Point startPoint = new Point(600, 100);
-        public static boolean eyeClosed = true;
-        public static boolean mothClosed = true;
+        public  boolean eyeClosed = true;
+        public  boolean mothClosed = true;
+
         public void draw(Graphics2D g){
             AffineTransform transform = g.getTransform();
 
@@ -71,6 +136,7 @@ public class ActionCharacter extends AbstractAction {
             drawEar(g);
         }
 
+        // Olho: desenha olhos, recebe o parametro closed para dizer se o olho está fechado ou não
         private void drawEye(Graphics2D g, boolean closed) {
 
             AffineTransform transform = g.getTransform();
@@ -178,32 +244,42 @@ public class ActionCharacter extends AbstractAction {
 
     static class Body{
 
+        Body(boolean player2) {
+            PLAYER2 = player2;
+        }
 
+        private final boolean PLAYER2;
         private final Point startPoint = new Point(560, 200);
         private int move = 0;
         private int step = 5;
         private boolean toDown = false;
-        public static boolean moveHand = false;
+        public boolean moveHand = false;
+
+        private final Color[] tshirtColors = {
+                new Color(189, 4, 4),
+                new Color(0, 51, 127)
+
+        };
 
         public void draw(Graphics2D g){
             AffineTransform transform = g.getTransform();
-
+            Color mainColor = tshirtColors[PLAYER2?1:0
+                    ];
+            Color secondaryColor = new Color(mainColor.getRed()+10, mainColor.getGreen()+10, mainColor.getBlue()+10);
             g.rotate(Math.toRadians(move), startPoint.x-130+210, startPoint.y+40 + ((startPoint.y+40+100)/2)-100-25);
             drawHand(g);
             g.setTransform(transform);
 
-            GeoDraw.drawEllipse(g, new Color(189, 4, 4),
+            GeoDraw.drawEllipse(g, mainColor,
                     new Point(startPoint.x, startPoint.y),
                     new Dimension(220, 220));
 
-            GeoDraw.drawRoundedRectangle(g, new Color(113, 12, 12),
+            GeoDraw.drawRoundedRectangle(g, secondaryColor,
                     new Point(startPoint.x+ 50, startPoint.y+170 ),
                     new Dimension(80, 20), 20 , 20);
             drawHand2(g);
             g.setTransform(transform);
 
-            Head.eyeClosed = moveHand;
-            Head.mothClosed = moveHand;
             if (moveHand) {
 
                 if (!toDown) {
@@ -326,12 +402,24 @@ public class ActionCharacter extends AbstractAction {
     static class Foot{
 
 
+        private final boolean PLAYER2;
+        Foot(boolean player2) {
+            PLAYER2 = player2;
+        }
         private final Point startPoint = new Point(620, 390);
+        private final Color[] pantsColor = {
+                new Color(21, 92, 97),
+                new Color(40, 40, 40)
+
+        };
 
         public void draw(Graphics2D g){
             AffineTransform transform = g.getTransform();
 
-            GeoDraw.drawRectangle(g, new Color(21, 92, 97),
+            GeoDraw.drawRectangle(g, pantsColor[
+                        PLAYER2?1:0
+                    ]
+                    ,
                     new Point(startPoint.x, startPoint.y),
                     new Dimension(200, 50));
             drawLeg(g, new Point(0,0) );
@@ -339,23 +427,46 @@ public class ActionCharacter extends AbstractAction {
             drawLeg(g, new Point(0,0));
             g.setTransform(transform);
         }
+        private boolean maxPoint = false;
+        private int moveCoxa = 0;
+        private int rotatePerna = 0;
+        private Point movePerna = new Point(0,0);
 
         public void drawLeg(Graphics2D g, Point moveTo){
             AffineTransform transform = g.getTransform();
 
-            GeoDraw.drawRectangle(g, new Color(21, 92, 97),
-                    new Point(startPoint.x, startPoint.y+50),
-                    new Dimension(40, 100));
+            // Coxa da perna
 
-            GeoDraw.drawEllipse(g, new Color(21, 92, 97),
+
+            g.rotate(Math.toRadians(moveCoxa), startPoint.x + 40/2, startPoint.y);
+            GeoDraw.drawRectangle(g, pantsColor[
+                            PLAYER2?1:0
+                            ],
+                    new Point(startPoint.x, startPoint.y),
+                    new Dimension(40, 150));
+
+            g.setTransform(transform);
+
+
+            g.translate(movePerna.x,movePerna.y);
+
+            g.rotate(Math.toRadians(rotatePerna), startPoint.x-10 + 40/2,startPoint.y+25+100);
+            // Joelho da perna
+            GeoDraw.drawEllipse(g, pantsColor[
+                            PLAYER2?1:0
+                            ],
                     new Point(startPoint.x-10, startPoint.y+25+100),
                     new Dimension(40, 40));
 
 
-            GeoDraw.drawRectangle(g, new Color(21, 92, 97),
+            // Perna
+            GeoDraw.drawRectangle(g, pantsColor[
+                            PLAYER2?1:0
+                            ],
                     new Point(startPoint.x, startPoint.y+50+100),
                     new Dimension(40, 100));
 
+            // Sapato
 
             Area footArea = new Area( GeoDraw.getEllipse(
                     new Point(startPoint.x-70/2, startPoint.y+50+100+100-70/2),
@@ -368,8 +479,11 @@ public class ActionCharacter extends AbstractAction {
                                     new Dimension(70, 70))
                     )
             );
+
             GeoDraw.fill(g, new Color(0), footArea);
+//            GeoDraw.drawEllipse(g, Color.WHITE,  new Point(startPoint.x + 40/2, startPoint.y+50), new Dimension(5, 5));
             g.setTransform(transform);
+
         }
     }
 
@@ -394,13 +508,40 @@ public class ActionCharacter extends AbstractAction {
 
     }
 
-    @Override
-    public void keyEvents(KeyEvent event) {
-        if (event.getKeyCode() == KeyEvent.VK_RIGHT)
-            moveToRigth = true;
-        if (event.getKeyCode() == KeyEvent.VK_LEFT)
-            moveToLeft = true;
-        Body.moveHand = (moveToLeft||moveToRigth);
 
+    @Override
+    protected synchronized void keyPressed(KeyEvent event) {
+        if(!keyCodes.contains(event.getKeyCode()))
+            keyCodes.add(event.getKeyCode());
+        for(int keyCode: keyCodes)
+            if (!PLAYER2)
+            {
+                if (keyCode == KeyEvent.VK_RIGHT)
+                    moveToRigth = true;
+                if (keyCode == KeyEvent.VK_LEFT)
+                    moveToLeft = true;
+                body.moveHand = (moveToLeft||moveToRigth);
+
+                if(keyCode==KeyEvent.VK_NUMPAD5)
+                    reverse = !reverse;
+            }else {
+
+                if (keyCode == KeyEvent.VK_D)
+                    moveToRigth = true;
+                if (keyCode == KeyEvent.VK_A)
+                    moveToLeft = true;
+                body.moveHand = (moveToLeft||moveToRigth);
+
+                if(keyCode==KeyEvent.VK_SPACE)
+                    reverse = !reverse;
+
+            }
     }
+
+    @Override
+    protected void keyRealesed(KeyEvent event) {
+        keyCodes.clear();
+    }
+
+
 }

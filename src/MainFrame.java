@@ -85,13 +85,12 @@ public class MainFrame extends JFrame {
 
           @Override
           public void keyPressed(KeyEvent e) {
-
-              canva.keyEvents(e);
+              canva.keyEvents(e, AbstractAction.KeyEventType.PRESSED);
           }
 
           @Override
           public void keyReleased(KeyEvent e) {
-
+              canva.keyEvents(e, AbstractAction.KeyEventType.RELEASED);
           }
       });
     }

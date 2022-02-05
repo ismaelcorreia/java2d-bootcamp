@@ -2,6 +2,7 @@ package characters;
 
 import java.awt.*;
 import java.awt.geom.Ellipse2D;
+import java.awt.geom.GeneralPath;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.RoundRectangle2D;
 
@@ -38,5 +39,27 @@ public class GeoDraw {
     }
     public static Rectangle2D getRectangle(Point point, Dimension dimension){
         return new Rectangle2D.Double(point.x, point.y, dimension.width, dimension.height);
+    }
+
+    public static void drawGeneralPath(Graphics2D g, Paint paint, Point... points){
+        GeneralPath generalPath = new GeneralPath();
+        generalPath.moveTo(points[0].x, points[0].y);
+
+        for (int i = 1; i < points.length; i++) {
+            generalPath.lineTo(points[i].x, points[i].y);
+        }
+        g.setPaint(paint);
+        g.draw(generalPath);
+    }
+    public static void fillGeneralPath(Graphics2D g, Paint paint, Point... points){
+        GeneralPath generalPath = new GeneralPath();
+        generalPath.moveTo(points[0].x, points[0].y);
+
+        for (int i = 1; i < points.length; i++) {
+            generalPath.lineTo(points[i].x, points[i].y);
+        }
+        generalPath.closePath();
+        g.setPaint(paint);
+        g.fill(generalPath);
     }
 }

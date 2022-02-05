@@ -39,11 +39,17 @@ public class DemoCharacter extends AbstractAction {
     }
 
     @Override
-    public void keyEvents(KeyEvent event) {
+    protected void keyPressed(KeyEvent event) {
+
         if (event.getKeyCode() == KeyEvent.VK_LEFT)
             Character.Leg.X_MOVE-=10;
         if (event.getKeyCode() == KeyEvent.VK_RIGHT)
             Character.Leg.X_MOVE+=10;
+    }
+
+    @Override
+    protected void keyRealesed(KeyEvent event) {
+
     }
 
 
@@ -103,14 +109,14 @@ public class DemoCharacter extends AbstractAction {
                 GeneralPath generalPath = new GeneralPath();
                 GeneralPath generalPat2 = new GeneralPath();
                 g.setPaint(new Color(8,50,58));
-                generalPath.moveTo(x = 500, y = 400);
-                generalPath.lineTo(x +=lx, y+=150);
+                generalPath.moveTo(x = 500, y -= 400);
+                generalPath.lineTo(x , y+=150+lx);
                 generalPath.lineTo(x+=30,y);
-                generalPath.lineTo(x-=lx, y-=150);
+                generalPath.lineTo(x, y-=150+lx);
                 generalPath.closePath();
 
 
-                generalPath.moveTo(x = 500+lx, y = 400+150);
+                generalPath.moveTo(x = 500, y = 400+150+lx);
                 //
                 generalPath.lineTo(x+=k, y+=150);
                 generalPath.lineTo(x+=30,y);
@@ -120,7 +126,7 @@ public class DemoCharacter extends AbstractAction {
                 g.fill(generalPath);
 
                 g.setPaint(Color.BLACK);
-                x = 500+lx; y = 700;
+                x = 500; y = 700+lx;
                 generalPat2.moveTo( x+=k, y);
                 generalPat2.curveTo( x-= 10, y+=10, x-=30, y+=5, x+=40, y);
                 generalPat2.lineTo(x+=20,y-=7);

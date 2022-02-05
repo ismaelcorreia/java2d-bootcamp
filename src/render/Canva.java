@@ -1,10 +1,9 @@
 package render;
 
 import actions.AbstractAction;
-import characters.ActionCharacter;
-import characters.Bola;
-import characters.DemoCharacter;
-import characters.PersonagemSaitama;
+import characters.*;
+import controllers.GameEngine;
+import scene.Lua;
 import scene.Street;
 
 import java.awt.*;
@@ -22,11 +21,14 @@ public class Canva extends AbstractAction {
         g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
         g.setRenderingHint(RenderingHints.KEY_COLOR_RENDERING, RenderingHints.VALUE_COLOR_RENDER_QUALITY);
         AffineTransform affineTransform = g.getTransform();
+
         g.setPaint(new Color(0x01205E));
         g.fillRect(0, 0, getWidth(), getHeight());
 
+        actionCharacter1.draw(g);
+        actionCharacter2.draw(g);
 
-        actionCharacter.draw(g);
+
         g.setTransform(affineTransform);
     }
 
@@ -52,24 +54,33 @@ public class Canva extends AbstractAction {
     }
 
     @Override
-    public void keyEvents(KeyEvent event) {
-        bola.keyEvents(event);
-        demo.keyEvents(event);
-        actionCharacter.keyEvents(event);
+    protected synchronized void keyPressed(KeyEvent event) {
+        actionCharacter1.keyEvents(event, KeyEventType.PRESSED );
+        actionCharacter2.keyEvents(event, KeyEventType.PRESSED);
+    }
+
+    @Override
+    protected synchronized void keyRealesed(KeyEvent event) {
+        actionCharacter1.keyEvents(event, KeyEventType.RELEASED);
+        actionCharacter2.keyEvents(event, KeyEventType.RELEASED);
     }
 
     private DemoCharacter demo;
+    private ActionCharacter actionCharacter1;
+    private ActionCharacter actionCharacter2;
     private Street street;
+    private GameEngine engine;
     private final int GAME_DELAY;
-    ActionCharacter actionCharacter;
-    PersonagemSaitama saitamaCharacter;
-    Bola bola;
-
+    Ryu ryu;
     public Canva(final int delay) {
         GAME_DELAY = delay;
-        actionCharacter = new ActionCharacter();
-        saitamaCharacter = new PersonagemSaitama();
-        bola = new Bola();
+        ryu = new Ryu();
+        actionCharacter1 = new ActionCharacter(true,new Point(-300, 0));
+        actionCharacter2 = new ActionCharacter(false,new Point(350, 0));
+        actionCharacter1.setExternalRectangles(actionCharacter2.getRectangle());
+        actionCharacter2.setExternalRectangles(actionCharacter1.getRectangle());
+
+
         street = new Street();
         demo = new DemoCharacter();
         new Thread(()-> {
